@@ -1,1 +1,2 @@
-
+{ "episodes": [ { "id": 1, "title": "Episode 1", "link": "https://firebasestorage.googleapis.com/v0/b/anime-17387.appspot.com/o/%5Bneosatsu%5D_kyuranger_01_720p.mp4?alt=media&token=03b60c02-6903-4491-952d-2912e14a60d0" }, { "id": 2, "title": "Episode 2", "link": "https://firebasestorage.googleapis.com/v0/b/anime-17387.appspot.com/o/%5Bneosatsu%5D_kyuranger_02_720p.mp4?alt=media&token=a0d0c9e5-0d0c-44e7-96dd-95059e69bf97" } ]
+}
