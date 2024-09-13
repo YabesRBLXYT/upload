@@ -47,45 +47,21 @@
             text-align: center;
             margin: 20px 0;
         }
-        #episodeList {
-            display: none;
-            position: fixed;
-            bottom: 0;
-            left: 0;
-            width: 100%;
-            background-color: rgba(0, 0, 0, 0.8);
-            color: white;
-            padding: 10px;
-            overflow-x: auto;
-            white-space: nowrap;
-            z-index: 1000;
-        }
-        #episodeList a {
-            color: white;
-            text-decoration: none;
-            margin: 0 10px;
-            padding: 10px;
-            border-radius: 5px;
-            background-color: #444;
-            display: inline-block;
-        }
-        #episodeList a:hover {
-            background-color: #666;
-        }
-        #toggleEpisodeList {
+        #controls button {
             background-color: #333;
             color: white;
             border: none;
             padding: 10px 20px;
             border-radius: 5px;
             cursor: pointer;
+            margin: 0 5px;
         }
-        #toggleEpisodeList:hover {
+        #controls button:hover {
             background-color: #666;
         }
-        .disabled {
-            opacity: 0.5;
-            pointer-events: none;
+        #controls .disabled {
+            background-color: #888;
+            cursor: not-allowed;
         }
     </style>
 </head>
@@ -97,12 +73,9 @@
     </video>
 
     <div id="controls">
-        <button id="toggleEpisodeList">Show Episode List</button>
         <button id="prevEpisode" class="disabled">Previous Episode</button>
         <button id="nextEpisode">Next Episode</button>
     </div>
-
-    <div id="episodeList"></div>
 
     <script>
         let episodes = [];
@@ -114,10 +87,8 @@
             .then(data => {
                 episodes = data.episodes;
                 const episodeBar = document.getElementById('episodeBar');
-                const episodeList = document.getElementById('episodeList');
                 const videoPlayer = document.getElementById('videoPlayer');
                 const videoSource = document.getElementById('videoSource');
-                const toggleEpisodeList = document.getElementById('toggleEpisodeList');
                 const prevEpisode = document.getElementById('prevEpisode');
                 const nextEpisode = document.getElementById('nextEpisode');
 
@@ -134,26 +105,13 @@
                     episodeBar.appendChild(episodeLink);
                 });
 
-                // Populate episode list
-                episodes.forEach((episode, index) => {
-                    const episodeLink = document.createElement('a');
-                    episodeLink.href = `#${episode.id}`;
-                    episodeLink.textContent = episode.title;
-                    episodeLink.addEventListener('click', (e) => {
-                        e.preventDefault();
-                        currentEpisodeIndex = index;
-                        loadEpisode();
-                        episodeList.style.display = 'none';
-                    });
-                    episodeList.appendChild(episodeLink);
-                });
-
                 // Load video based on hash or current index
                 function loadEpisode() {
                     const episode = episodes[currentEpisodeIndex];
                     if (episode) {
                         videoSource.src = episode.link;
                         videoPlayer.load();
+                        window.location.hash = `#${episode.id}`; // Update hash without refreshing
                         updateControls();
                     }
                 }
@@ -188,28 +146,19 @@
                 }
 
                 // Event listeners for controls
-                prevEpisode.addEventListener('click', () => {
+                prevEpisode.addEventListener('click', (e) => {
                     if (currentEpisodeIndex > 0) {
+                        e.preventDefault();
                         currentEpisodeIndex--;
                         loadEpisode();
                     }
                 });
 
-                nextEpisode.addEventListener('click', () => {
+                nextEpisode.addEventListener('click', (e) => {
                     if (currentEpisodeIndex < episodes.length - 1) {
+                        e.preventDefault();
                         currentEpisodeIndex++;
                         loadEpisode();
-                    }
-                });
-
-                // Toggle episode list display
-                toggleEpisodeList.addEventListener('click', () => {
-                    if (episodeList.style.display === 'none' || episodeList.style.display === '') {
-                        episodeList.style.display = 'block';
-                        toggleEpisodeList.textContent = 'Hide Episode List';
-                    } else {
-                        episodeList.style.display = 'none';
-                        toggleEpisodeList.textContent = 'Show Episode List';
                     }
                 });
             });
