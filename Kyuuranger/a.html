@@ -11,14 +11,26 @@
         }
         .episode-input {
             margin-bottom: 10px;
+            display: flex;
+            align-items: center;
         }
         label {
             margin-right: 10px;
         }
         input[type="text"] {
-            width: 80%;
+            width: 70%;
             padding: 5px;
-            margin-bottom: 5px;
+            margin-right: 5px;
+        }
+        button.paste-button {
+            padding: 5px 10px;
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            cursor: pointer;
+        }
+        button.paste-button:hover {
+            background-color: #45a049;
         }
         #jsonOutput {
             margin-top: 20px;
@@ -73,7 +85,8 @@
             const div = document.createElement('div');
             div.className = 'episode-input';
             div.innerHTML = `<label for="episode${i}">Episode ${i} Link:</label>
-                             <input type="text" id="episode${i}" placeholder="Enter link for Episode ${i}">`;
+                             <input type="text" id="episode${i}" placeholder="Enter link for Episode ${i}">
+                             <button class="paste-button" onclick="pasteClipboard(${i})">Tempel</button>`;
             episodeContainer.appendChild(div);
         }
 
@@ -116,6 +129,15 @@
                 alert('JSON copied to clipboard!');
             }).catch(err => {
                 console.error('Failed to copy text: ', err);
+            });
+        }
+
+        // Function to paste clipboard content into the specified episode input
+        function pasteClipboard(episodeId) {
+            navigator.clipboard.readText().then(text => {
+                document.getElementById(`episode${episodeId}`).value = text;
+            }).catch(err => {
+                alert('Failed to read clipboard contents: ', err);
             });
         }
     </script>
