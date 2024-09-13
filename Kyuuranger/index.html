@@ -42,6 +42,19 @@
             max-width: 720px;
             border: 2px solid #333;
             border-radius: 10px;
+            position: relative;
+        }
+        #episodeID {
+            position: absolute;
+            top: 10px;
+            left: 50%;
+            transform: translateX(-50%);
+            background-color: rgba(0, 0, 0, 0.6);
+            color: white;
+            padding: 5px 10px;
+            border-radius: 5px;
+            font-size: 18px;
+            z-index: 10;
         }
         #controls {
             text-align: center;
@@ -69,6 +82,7 @@
     <div id="episodeBar"></div>
     <video id="videoPlayer" controls>
         <source id="videoSource" src="" type="video/mp4">
+        <div id="episodeID">Episode ID</div>
         Your browser does not support the video tag.
     </video>
 
@@ -87,6 +101,7 @@
             .then(data => {
                 episodes = data.episodes;
                 const episodeBar = document.getElementById('episodeBar');
+                const episodeID = document.getElementById('episodeID');
                 const videoPlayer = document.getElementById('videoPlayer');
                 const videoSource = document.getElementById('videoSource');
                 const prevEpisode = document.getElementById('prevEpisode');
@@ -99,8 +114,8 @@
                     episodeLink.textContent = episode.title;
                     episodeLink.addEventListener('click', (e) => {
                         e.preventDefault();
-                        currentEpisodeIndex = index;
-                        loadEpisode();
+                        // Navigate to the new URL, which will refresh the page
+                        window.location.href = `#${episode.id}`;
                     });
                     episodeBar.appendChild(episodeLink);
                 });
@@ -111,6 +126,7 @@
                     if (episode) {
                         videoSource.src = episode.link;
                         videoPlayer.load();
+                        episodeID.textContent = `Episode ${episode.id}`;
                         window.location.hash = `#${episode.id}`; // Update hash without refreshing
                         updateControls();
                     }
