@@ -3,84 +3,150 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Kyuuranger - Episode Player</title>
+    <title>Episode JSON Generator</title>
     <style>
         body {
             font-family: Arial, sans-serif;
-            margin: 0;
-            padding: 0;
-            background-color: #f0f0f0;
+            margin: 20px;
         }
-        #episodeBar {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            background-color: #333;
-            padding: 10px;
+        .episode-input {
+            margin-bottom: 10px;
             display: flex;
-            justify-content: center;
-            overflow-x: auto;
+            align-items: center;
         }
-        #episodeBar a {
+        label {
+            margin-right: 10px;
+        }
+        input[type="text"] {
+            width: 70%;
+            padding: 5px;
+            margin-right: 5px;
+        }
+        button.paste-button {
+            padding: 5px 10px;
+            background-color: #4CAF50;
             color: white;
-            text-decoration: none;
-            margin: 0 10px;
+            border: none;
+            cursor: pointer;
+        }
+        button.paste-button:hover {
+            background-color: #45a049;
+        }
+        #episodeContainer {
+            overflow-x: auto;
+            white-space: nowrap;
+            border: 1px solid #ccc;
             padding: 10px;
-            border-radius: 5px;
-            background-color: #444;
+            margin-bottom: 20px;
         }
-        #episodeBar a:hover {
-            background-color: #666;
+        #jsonOutput {
+            margin-top: 20px;
+            padding: 10px;
+            border: 1px solid #ccc;
+            background-color: #f9f9f9;
+            white-space: pre-wrap;
+            word-wrap: break-word;
         }
-        video {
-            display: block;
-            margin: 100px auto;
-            width: 80%;
-            max-width: 720px;
-            border: 2px solid #333;
-            border-radius: 10px;
+        #loadJsonArea {
+            margin-top: 20px;
+        }
+        textarea {
+            width: 100%;
+            height: 100px;
+        }
+        #copyButton {
+            margin-top: 10px;
+            padding: 5px 10px;
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            cursor: pointer;
+        }
+        #copyButton:hover {
+            background-color: #45a049;
         }
     </style>
 </head>
 <body>
-    <div id="episodeBar"></div>
-    <video id="videoPlayer" controls>
-        <source id="videoSource" src="" type="video/mp4">
-        Your browser does not support the video tag.
-    </video>
+
+    <h1>Episode JSON Generator</h1>
+
+    <div id="episodeContainer"></div>
+
+    <button onclick="generateJson()">Generate episode.json</button>
+    
+    <div id="loadJsonArea">
+        <h2>Load Existing JSON</h2>
+        <textarea id="jsonInputArea" placeholder="Paste your episode.json content here"></textarea>
+        <button onclick="loadJson()">Load JSON</button>
+    </div>
+
+    <h2>Generated episode.json</h2>
+    <pre id="jsonOutput"></pre>
+    <button id="copyButton" style="display: none;" onclick="copyJson()">Copy JSON</button>
 
     <script>
-        // Fetch episode data
-        fetch('episode.json')
-            .then(response => response.json())
-            .then(data => {
-                const episodeBar = document.getElementById('episodeBar');
-                const videoPlayer = document.getElementById('videoPlayer');
-                const videoSource = document.getElementById('videoSource');
+        // Generate 48 text inputs for episodes
+        const episodeContainer = document.getElementById('episodeContainer');
+        for (let i = 1; i <= 48; i++) {
+            const div = document.createElement('div');
+            div.className = 'episode-input';
+            div.innerHTML = `<label for="episode${i}">Episode ${i} Link:</label>
+                             <input type="text" id="episode${i}" placeholder="Enter link for Episode ${i}">
+                             <button class="paste-button" onclick="pasteClipboard(${i})">Tempel</button>`;
+            episodeContainer.appendChild(div);
+        }
 
-                // Populate episode bar
-                data.episodes.forEach(episode => {
-                    const episodeLink = document.createElement('a');
-                    episodeLink.href = `#${episode.id}`;
-                    episodeLink.textContent = episode.title;
-                    episodeBar.appendChild(episodeLink);
-                });
-
-                // Load video based on hash
-                function loadEpisode() {
-                    const hash = window.location.hash.substring(1);
-                    const episode = data.episodes.find(ep => ep.id == hash) || data.episodes[0]; // Default to first episode
-                    videoSource.src = episode.link;
-                    videoPlayer.load();
+        // Function to generate JSON from the input fields
+        function generateJson() {
+            const episodes = [];
+            for (let i = 1; i <= 48; i++) {
+                const link = document.getElementById(`episode${i}`).value;
+                if (link) {
+                    episodes.push({ id: i, title: `Episode ${i}`, link: link });
                 }
+            }
 
-                // Event listener for hash change
-                window.addEventListener('hashchange', loadEpisode);
+            // Create formatted JSON with minimal spacing
+            const json = JSON.stringify({ episodes: episodes }, null, 1).replace(/\n\s+/g, " ");
+            document.getElementById('jsonOutput').textContent = json;
+            document.getElementById('copyButton').style.display = 'inline-block'; // Show copy button
+        }
 
-                // Load initial episode
-                loadEpisode();
+        // Function to load an existing JSON and populate the input fields
+        function loadJson() {
+            const jsonData = document.getElementById('jsonInputArea').value;
+            try {
+                const parsedData = JSON.parse(jsonData);
+                parsedData.episodes.forEach(episode => {
+                    const inputField = document.getElementById(`episode${episode.id}`);
+                    if (inputField) {
+                        inputField.value = episode.link;
+                    }
+                });
+            } catch (error) {
+                alert('Invalid JSON data');
+            }
+        }
+
+        // Function to copy the generated JSON to clipboard
+        function copyJson() {
+            const jsonOutput = document.getElementById('jsonOutput').textContent;
+            navigator.clipboard.writeText(jsonOutput).then(() => {
+                alert('JSON copied to clipboard!');
+            }).catch(err => {
+                console.error('Failed to copy text: ', err);
             });
+        }
+
+        // Function to paste clipboard content into the specified episode input
+        function pasteClipboard(episodeId) {
+            navigator.clipboard.readText().then(text => {
+                document.getElementById(`episode${episodeId}`).value = text;
+            }).catch(err => {
+                alert('Failed to read clipboard contents: ', err);
+            });
+        }
     </script>
 </body>
 </html>
