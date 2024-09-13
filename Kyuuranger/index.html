@@ -35,26 +35,30 @@
         #episodeBar a:hover {
             background-color: #666;
         }
-        video {
+        #videoContainer {
             display: block;
-            margin: 100px auto;
+            margin: 150px auto;
             width: 80%;
             max-width: 720px;
+            position: relative;
+        }
+        video {
+            width: 100%;
             border: 2px solid #333;
             border-radius: 10px;
             position: relative;
         }
         #episodeID {
             position: absolute;
-            top: -40px;
+            top: -50px;
             left: 50%;
             transform: translateX(-50%);
-            background-color: rgba(0, 0, 0, 0.6);
+            background-color: rgba(0, 0, 0, 0.7);
             color: white;
-            padding: 5px 10px;
+            padding: 5px 15px;
             border-radius: 5px;
             font-size: 18px;
-            z-index: 10;
+            z-index: 1000; /* Make sure it's above the video */
         }
         #controls {
             text-align: center;
@@ -80,11 +84,14 @@
 </head>
 <body>
     <div id="episodeBar"></div>
-    <div id="episodeID">Episode ID</div> <!-- Episode ID displayed above the video -->
-    <video id="videoPlayer" controls>
-        <source id="videoSource" src="" type="video/mp4">
-        Your browser does not support the video tag.
-    </video>
+
+    <div id="videoContainer">
+        <div id="episodeID">Episode ID</div> <!-- Episode ID displayed above the video -->
+        <video id="videoPlayer" controls>
+            <source id="videoSource" src="" type="video/mp4">
+            Your browser does not support the video tag.
+        </video>
+    </div>
 
     <div id="controls">
         <button id="prevEpisode" class="disabled">Previous Episode</button>
