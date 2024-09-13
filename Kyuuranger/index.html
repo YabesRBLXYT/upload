@@ -46,7 +46,7 @@
         }
         #episodeID {
             position: absolute;
-            top: 10px;
+            top: -40px;
             left: 50%;
             transform: translateX(-50%);
             background-color: rgba(0, 0, 0, 0.6);
@@ -80,9 +80,9 @@
 </head>
 <body>
     <div id="episodeBar"></div>
+    <div id="episodeID">Episode ID</div> <!-- Episode ID displayed above the video -->
     <video id="videoPlayer" controls>
         <source id="videoSource" src="" type="video/mp4">
-        <div id="episodeID">Episode ID</div>
         Your browser does not support the video tag.
     </video>
 
@@ -101,7 +101,7 @@
             .then(data => {
                 episodes = data.episodes;
                 const episodeBar = document.getElementById('episodeBar');
-                const episodeID = document.getElementById('episodeID');
+                const episodeID = document.getElementById('episodeID'); // Get the episodeID element
                 const videoPlayer = document.getElementById('videoPlayer');
                 const videoSource = document.getElementById('videoSource');
                 const prevEpisode = document.getElementById('prevEpisode');
@@ -126,7 +126,7 @@
                     if (episode) {
                         videoSource.src = episode.link;
                         videoPlayer.load();
-                        episodeID.textContent = `Episode ${episode.id}`;
+                        episodeID.textContent = `Episode ${episode.id}`; // Display the episode ID above the video
                         window.location.hash = `#${episode.id}`; // Update hash without refreshing
                         updateControls();
                     }
