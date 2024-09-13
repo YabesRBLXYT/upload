@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Kyuuranger - Episode Player</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: #f0f0f0;
+        }
+        #episodeBar {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            background-color: #333;
+            padding: 10px;
+            display: flex;
+            justify-content: center;
+            overflow-x: auto;
+        }
+        #episodeBar a {
+            color: white;
+            text-decoration: none;
+            margin: 0 10px;
+            padding: 10px;
+            border-radius: 5px;
+            background-color: #444;
+        }
+        #episodeBar a:hover {
+            background-color: #666;
+        }
+        video {
+            display: block;
+            margin: 100px auto;
+            width: 80%;
+            max-width: 720px;
+            border: 2px solid #333;
+            border-radius: 10px;
+        }
+    </style>
+</head>
+<body>
+    <div id="episodeBar"></div>
+    <video id="videoPlayer" controls>
+        <source id="videoSource" src="" type="video/mp4">
+        Your browser does not support the video tag.
+    </video>
+
+    <script>
+        // Fetch episode data
+        fetch('episode.json')
+            .then(response => response.json())
+            .then(data => {
+                const episodeBar = document.getElementById('episodeBar');
+                const videoPlayer = document.getElementById('videoPlayer');
+                const videoSource = document.getElementById('videoSource');
+
+                // Populate episode bar
+                data.episodes.forEach(episode => {
+                    const episodeLink = document.createElement('a');
+                    episodeLink.href = `#${episode.id}`;
+                    episodeLink.textContent = episode.title;
+                    episodeBar.appendChild(episodeLink);
+                });
+
+                // Load video based on hash
+                function loadEpisode() {
+                    const hash = window.location.hash.substring(1);
+                    const episode = data.episodes.find(ep => ep.id == hash) || data.episodes[0]; // Default to first episode
+                    videoSource.src = episode.link;
+                    videoPlayer.load();
+                }
+
+                // Event listener for hash change
+                window.addEventListener('hashchange', loadEpisode);
+
+                // Load initial episode
+                loadEpisode();
+            });
+    </script>
+</body>
+</html>
