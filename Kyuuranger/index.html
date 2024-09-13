@@ -11,7 +11,7 @@
             padding: 0;
             background-color: #f0f0f0;
         }
-        #episodeBar {
+        #controls {
             position: fixed;
             top: 0;
             left: 0;
@@ -19,11 +19,34 @@
             background-color: #333;
             padding: 10px;
             display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+        }
+        #controls button, #controls a {
+            color: white;
+            background-color: #444;
+            border: none;
+            padding: 10px;
+            margin: 0 5px;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+        #controls button:hover, #controls a:hover {
+            background-color: #666;
+        }
+        #episodeList {
+            display: none;
+            position: absolute;
+            top: 100%;
+            left: 0;
+            width: 100%;
+            background-color: #333;
+            padding: 10px;
             overflow-x: auto;
             white-space: nowrap;
-            z-index: 1000; /* Ensure it stays on top */
         }
-        #episodeBar a {
+        #episodeList a {
             color: white;
             text-decoration: none;
             margin: 0 10px;
@@ -32,12 +55,12 @@
             background-color: #444;
             display: inline-block;
         }
-        #episodeBar a:hover {
+        #episodeList a:hover {
             background-color: #666;
         }
         video {
             display: block;
-            margin: 100px auto;
+            margin: 60px auto;
             width: 80%;
             max-width: 720px;
             border: 2px solid #333;
@@ -46,7 +69,12 @@
     </style>
 </head>
 <body>
-    <div id="episodeBar"></div>
+    <div id="controls">
+        <button id="prevEpisode" disabled>Previous Episode</button>
+        <button id="episodeToggle">Show Episodes</button>
+        <button id="nextEpisode" disabled>Next Episode</button>
+    </div>
+    <div id="episodeList"></div>
     <video id="videoPlayer" controls>
         <source id="videoSource" src="" type="video/mp4">
         Your browser does not support the video tag.
@@ -57,28 +85,69 @@
         fetch('episode.json')
             .then(response => response.json())
             .then(data => {
-                const episodeBar = document.getElementById('episodeBar');
+                const episodeList = document.getElementById('episodeList');
+                const episodeToggle = document.getElementById('episodeToggle');
+                const prevEpisodeBtn = document.getElementById('prevEpisode');
+                const nextEpisodeBtn = document.getElementById('nextEpisode');
                 const videoPlayer = document.getElementById('videoPlayer');
                 const videoSource = document.getElementById('videoSource');
 
-                // Populate episode bar
-                data.episodes.forEach(episode => {
+                let currentIndex = 0;
+
+                // Populate episode list
+                data.episodes.forEach((episode, index) => {
                     const episodeLink = document.createElement('a');
                     episodeLink.href = `#${episode.id}`;
                     episodeLink.textContent = episode.title;
-                    episodeBar.appendChild(episodeLink);
+                    episodeLink.addEventListener('click', (e) => {
+                        e.preventDefault();
+                        currentIndex = index;
+                        loadEpisode();
+                    });
+                    episodeList.appendChild(episodeLink);
+                });
+
+                // Toggle episode list visibility
+                episodeToggle.addEventListener('click', () => {
+                    episodeList.style.display = episodeList.style.display === 'none' ? 'block' : 'none';
                 });
 
                 // Load video based on hash
                 function loadEpisode() {
                     const hash = window.location.hash.substring(1);
-                    const episode = data.episodes.find(ep => ep.id == hash) || data.episodes[0]; // Default to first episode
+                    const episode = data.episodes.find(ep => ep.id == hash) || data.episodes[currentIndex] || data.episodes[0];
                     videoSource.src = episode.link;
                     videoPlayer.load();
+                    window.location.hash = `#${episode.id}`;
+                    updateButtons();
+                }
+
+                // Update navigation buttons
+                function updateButtons() {
+                    prevEpisodeBtn.disabled = currentIndex === 0;
+                    nextEpisodeBtn.disabled = currentIndex === data.episodes.length - 1;
                 }
 
                 // Event listener for hash change
-                window.addEventListener('hashchange', loadEpisode);
+                window.addEventListener('hashchange', () => {
+                    currentIndex = data.episodes.findIndex(ep => ep.id == window.location.hash.substring(1));
+                    loadEpisode();
+                });
+
+                // Event listener for navigation buttons
+                prevEpisodeBtn.addEventListener('click', () => {
+                    if (currentIndex > 0) {
+                        currentIndex--;
+                        window.location.hash = `#${data.episodes[currentIndex].id}`;
+                    }
+                });
+
+                nextEpisodeBtn.addEventListener('click', () => {
+                    if (currentIndex < data.episodes.length - 1) {
+                        currentIndex++;
+                        window.location.hash = `#${data.episodes[currentIndex].id}`;
+                    }
+                });
 
                 // Load initial episode
                 loadEpisode();
