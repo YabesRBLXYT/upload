@@ -18,7 +18,8 @@
             width: 100%;
             background-color: #333;
             padding: 10px;
-            overflow: hidden; /* Prevents overflow */
+            overflow-x: auto; /* Allow scrolling */
+            white-space: nowrap; /* Prevent text from wrapping */
             z-index: 1000;
         }
         #episodeBar {
@@ -33,6 +34,7 @@
             border-radius: 5px;
             background-color: #444;
             display: inline-block;
+            white-space: nowrap; /* Prevent wrapping of individual episode links */
         }
         #episodeBar a:hover {
             background-color: #666;
@@ -137,7 +139,7 @@
                     episodes.forEach((episode, index) => {
                         const episodeLink = document.createElement('a');
                         episodeLink.href = `#${episode.id}`;
-                        episodeLink.textContent = episode.title;
+                        episodeLink.textContent = `Episode ${episode.id}`;
                         episodeLink.addEventListener('click', (e) => {
                             e.preventDefault();
                             currentEpisodeIndex = index;
@@ -146,7 +148,7 @@
                         episodeBar.appendChild(episodeLink);
                     });
                     // Animate bar slide
-                    episodeBar.style.transform = `translateX(${-(startIndex * 120)}px)`; // Shifts episodes with animation
+                    episodeBar.style.transform = `translateX(${-(startIndex * 130)}px)`; // Adjusted to avoid cutting off
                 }
 
                 // Load video based on current index
