@@ -11,20 +11,17 @@
             padding: 0;
             background-color: #f0f0f0;
         }
-        #episodeBarContainer {
+        #episodeBar {
             position: fixed;
             top: 0;
             left: 0;
             width: 100%;
             background-color: #333;
             padding: 10px;
-            overflow-x: auto; /* Allow scrolling */
-            white-space: nowrap; /* Prevent text from wrapping */
-            z-index: 1000;
-        }
-        #episodeBar {
             display: flex;
-            transition: transform 0.5s ease; /* Smooth animation when shifting */
+            overflow-x: auto;
+            white-space: nowrap;
+            z-index: 1000;
         }
         #episodeBar a {
             color: white;
@@ -34,7 +31,6 @@
             border-radius: 5px;
             background-color: #444;
             display: inline-block;
-            white-space: nowrap; /* Prevent wrapping of individual episode links */
         }
         #episodeBar a:hover {
             background-color: #666;
@@ -98,9 +94,7 @@
     </style>
 </head>
 <body>
-    <div id="episodeBarContainer">
-        <div id="episodeBar"></div>
-    </div>
+    <div id="episodeBar"></div>
 
     <div id="videoContainer">
         <div id="episodeID">Episode ID</div> <!-- Episode ID displayed above the video -->
@@ -134,24 +128,19 @@
                 const skipOPButton = document.getElementById('skipOP'); // Skip OP button
 
                 // Populate episode bar
-                function populateEpisodeBar(startIndex = 0) {
-                    episodeBar.innerHTML = ''; // Clear the episode bar
-                    episodes.forEach((episode, index) => {
-                        const episodeLink = document.createElement('a');
-                        episodeLink.href = `#${episode.id}`;
-                        episodeLink.textContent = `Episode ${episode.id}`;
-                        episodeLink.addEventListener('click', (e) => {
-                            e.preventDefault();
-                            currentEpisodeIndex = index;
-                            loadEpisode();
-                        });
-                        episodeBar.appendChild(episodeLink);
+                episodes.forEach((episode, index) => {
+                    const episodeLink = document.createElement('a');
+                    episodeLink.href = `#${episode.id}`;
+                    episodeLink.textContent = episode.title;
+                    episodeLink.addEventListener('click', (e) => {
+                        e.preventDefault();
+                        // Navigate to the new URL, which will refresh the page
+                        window.location.href = `#${episode.id}`;
                     });
-                    // Animate bar slide
-                    episodeBar.style.transform = `translateX(${-(startIndex * 130)}px)`; // Adjusted to avoid cutting off
-                }
+                    episodeBar.appendChild(episodeLink);
+                });
 
-                // Load video based on current index
+                // Load video based on hash or current index
                 function loadEpisode() {
                     const episode = episodes[currentEpisodeIndex];
                     if (episode) {
@@ -160,7 +149,6 @@
                         episodeID.textContent = `Episode ${episode.id}`; // Display the episode ID above the video
                         window.location.hash = `#${episode.id}`; // Update hash without refreshing
                         updateControls();
-                        populateEpisodeBar(currentEpisodeIndex); // Shift episode bar to make current episode first
                     }
                 }
 
@@ -212,7 +200,7 @@
 
                 // Skip OP Button functionality
                 skipOPButton.addEventListener('click', () => {
-                    videoPlayer.currentTime += 80; // Skip 80 seconds (duration of OP)
+                    videoPlayer.currentTime += 85; // Skip 85 seconds (duration of OP)
                 });
             });
     </script>
