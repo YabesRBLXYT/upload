@@ -85,11 +85,8 @@
             color: white;
             padding: 10px 15px;
             border-radius: 5px;
-            position: absolute;
-            bottom: 15px;
-            left: 50%;
-            transform: translateX(-50%);
-            z-index: 100;
+            position: relative;
+            margin-top: 10px;
             cursor: pointer;
         }
         #skipOP:hover {
@@ -204,7 +201,7 @@
 
                 // Skip OP Button functionality
                 skipOPButton.addEventListener('click', () => {
-                    videoPlayer.currentTime += 125; // Skip 2 minutes and 5 seconds (125 seconds)
+                    videoPlayer.currentTime += 85; // Skip 85 seconds
                 });
             });
     </script>
