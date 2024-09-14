@@ -21,7 +21,7 @@
             display: flex;
             overflow-x: auto;
             white-space: nowrap;
-            z-index: 1000; /* Ensure it stays on top */
+            z-index: 1000;
         }
         #episodeBar a {
             color: white;
@@ -58,7 +58,23 @@
             padding: 5px 15px;
             border-radius: 5px;
             font-size: 18px;
-            z-index: 1000; /* Make sure it's above the video */
+            z-index: 1000;
+        }
+        #skipOP {
+            background-color: #444;
+            color: white;
+            padding: 10px 15px;
+            border-radius: 5px;
+            position: absolute;
+            top: 0;
+            left: 50%;
+            transform: translateX(-50%);
+            margin-top: 50px;
+            z-index: 100;
+            cursor: pointer;
+        }
+        #skipOP:hover {
+            background-color: #666;
         }
         #controls {
             text-align: center;
@@ -80,18 +96,6 @@
             background-color: #888;
             cursor: not-allowed;
         }
-        #skipOP {
-            background-color: #444;
-            color: white;
-            padding: 10px 15px;
-            border-radius: 5px;
-            position: relative;
-            margin-top: 10px;
-            cursor: pointer;
-        }
-        #skipOP:hover {
-            background-color: #666;
-        }
     </style>
 </head>
 <body>
@@ -99,11 +103,11 @@
 
     <div id="videoContainer">
         <div id="episodeID">Episode ID</div> <!-- Episode ID displayed above the video -->
+        <div id="skipOP">Skip OP</div> <!-- Skip OP Button placed directly below Episode ID -->
         <video id="videoPlayer" controls>
             <source id="videoSource" src="" type="video/mp4">
             Your browser does not support the video tag.
         </video>
-        <div id="skipOP">Skip OP</div> <!-- Skip OP Button -->
     </div>
 
     <div id="controls">
@@ -201,7 +205,7 @@
 
                 // Skip OP Button functionality
                 skipOPButton.addEventListener('click', () => {
-                    videoPlayer.currentTime += 85; // Skip 85 seconds
+                    videoPlayer.currentTime += 85; // Skip 85 seconds (duration of OP)
                 });
             });
     </script>
