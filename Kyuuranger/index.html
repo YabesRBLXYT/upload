@@ -80,6 +80,21 @@
             background-color: #888;
             cursor: not-allowed;
         }
+        #skipOP {
+            background-color: #444;
+            color: white;
+            padding: 10px 15px;
+            border-radius: 5px;
+            position: absolute;
+            bottom: 15px;
+            left: 50%;
+            transform: translateX(-50%);
+            z-index: 100;
+            cursor: pointer;
+        }
+        #skipOP:hover {
+            background-color: #666;
+        }
     </style>
 </head>
 <body>
@@ -91,6 +106,7 @@
             <source id="videoSource" src="" type="video/mp4">
             Your browser does not support the video tag.
         </video>
+        <div id="skipOP">Skip OP</div> <!-- Skip OP Button -->
     </div>
 
     <div id="controls">
@@ -113,6 +129,7 @@
                 const videoSource = document.getElementById('videoSource');
                 const prevEpisode = document.getElementById('prevEpisode');
                 const nextEpisode = document.getElementById('nextEpisode');
+                const skipOPButton = document.getElementById('skipOP'); // Skip OP button
 
                 // Populate episode bar
                 episodes.forEach((episode, index) => {
@@ -183,6 +200,11 @@
                         currentEpisodeIndex++;
                         loadEpisode();
                     }
+                });
+
+                // Skip OP Button functionality
+                skipOPButton.addEventListener('click', () => {
+                    videoPlayer.currentTime += 125; // Skip 2 minutes and 5 seconds (125 seconds)
                 });
             });
     </script>
