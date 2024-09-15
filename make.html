@@ -67,29 +67,34 @@
         .switch {
             display: inline-block;
             margin-bottom: 20px;
+            position: relative;
+            width: 50px;
+            height: 25px;
         }
         .switch input {
             display: none;
         }
         .slider {
-            position: relative;
-            display: inline-block;
-            width: 50px;
-            height: 25px;
+            position: absolute;
+            cursor: pointer;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
             background-color: #ccc;
+            transition: 0.4s;
             border-radius: 25px;
-            transition: background-color 0.2s;
         }
         .slider:before {
-            content: "";
             position: absolute;
-            width: 20px;
+            content: "";
             height: 20px;
-            background-color: white;
+            width: 20px;
             border-radius: 50%;
-            top: 2.5px;
+            background-color: white;
+            bottom: 2.5px;
             left: 3px;
-            transition: transform 0.2s;
+            transition: 0.4s;
         }
         input:checked + .slider {
             background-color: #4CAF50;
@@ -108,10 +113,10 @@
     <button class="add-episode-button" onclick="setEpisodes()">Set Episodes</button>
 
     <div class="switch">
-        <label>Show Remove Buttons (On/Off)</label>
         <input type="checkbox" id="removeSwitch" checked onchange="toggleRemoveButtons()">
         <span class="slider"></span>
     </div>
+    <label for="removeSwitch">Show Remove Buttons (On/Off)</label>
 
     <div id="episodeContainer"></div>
 
@@ -239,7 +244,7 @@
             // Create formatted JSON with minimal spacing
             const json = JSON.stringify({ episodes: episodes }, null, 1).replace(/\n\s+/g, " ");
             document.getElementById('jsonOutput').textContent = json;
-            document.getElementById('copyButton').style.display = 'inline-block'; // Show copy button
+            document.getElementById('copyButton').style.display = 'block'; // Show copy button
         }
 
         // Function to load JSON into the textboxes
