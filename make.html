@@ -133,20 +133,6 @@
                 lastEpisodeDiv.remove();
                 currentEpisodeId--;
                 adjustAddButtonPosition();
-                reorderEpisodes(); // Reorder the remaining episodes
-            }
-        }
-
-        // Function to reorder episodes after one is removed
-        function reorderEpisodes() {
-            const episodeContainer = document.getElementById('episodeContainer');
-            const episodeDivs = episodeContainer.getElementsByClassName('episode-input');
-            for (let i = 0; i < episodeDivs.length; i++) {
-                const label = episodeDivs[i].getElementsByTagName('label')[0];
-                const input = episodeDivs[i].getElementsByTagName('input')[0];
-                const episodeNumber = i + 1;
-                label.textContent = `Episode ${episodeNumber} Link:`;
-                input.id = `episode${episodeNumber}`;
             }
         }
 
