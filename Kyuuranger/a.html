@@ -22,15 +22,21 @@
             padding: 5px;
             margin-right: 5px;
         }
-        button.paste-button, button.add-episode-button {
+        button.paste-button, button.add-episode-button, button.remove-button {
             padding: 5px 10px;
             background-color: #4CAF50;
             color: white;
             border: none;
             cursor: pointer;
         }
-        button.paste-button:hover, button.add-episode-button:hover {
+        button.paste-button:hover, button.add-episode-button:hover, button.remove-button:hover {
             background-color: #45a049;
+        }
+        button.remove-button {
+            background-color: #f44336;
+        }
+        button.remove-button:hover {
+            background-color: #d32f2f;
         }
         #jsonOutput {
             margin-top: 20px;
@@ -66,7 +72,8 @@
 
     <label for="numEpisodes">Number of Episodes:</label>
     <input type="number" id="numEpisodes" value="48" min="1" max="100">
-    <button class="add-episode-button" onclick="addEpisodes()">Set Episodes</button>
+    <button class="add-episode-button" onclick="setEpisodes()">Set Episodes</button>
+    <button class="add-episode-button" onclick="addSingleEpisode()">+</button>
 
     <div id="episodeContainer"></div>
 
@@ -83,30 +90,59 @@
     <button id="copyButton" style="display: none;" onclick="copyJson()">Copy JSON</button>
 
     <script>
-        // Function to add episodes dynamically based on the input number
-        function addEpisodes() {
+        let currentEpisodeId = 48; // To keep track of episode ids for manual additions
+
+        // Function to set episodes based on the input number
+        function setEpisodes() {
             const episodeContainer = document.getElementById('episodeContainer');
             const numEpisodes = parseInt(document.getElementById('numEpisodes').value);
             episodeContainer.innerHTML = ''; // Clear previous inputs
 
             for (let i = 1; i <= numEpisodes; i++) {
-                const div = document.createElement('div');
-                div.className = 'episode-input';
-                div.innerHTML = `<label for="episode${i}">Episode ${i} Link:</label>
-                                 <input type="text" id="episode${i}" placeholder="Enter link for Episode ${i}">
-                                 <button class="paste-button" onclick="pasteClipboard(${i})">Tempel</button>`;
-                episodeContainer.appendChild(div);
+                addEpisodeInput(i);
+            }
+
+            currentEpisodeId = numEpisodes; // Update current episode ID tracker
+        }
+
+        // Function to add a single episode input manually
+        function addSingleEpisode() {
+            currentEpisodeId++;
+            addEpisodeInput(currentEpisodeId);
+        }
+
+        // Function to create the episode input
+        function addEpisodeInput(id) {
+            const episodeContainer = document.getElementById('episodeContainer');
+            const div = document.createElement('div');
+            div.className = 'episode-input';
+            div.id = `episodeDiv${id}`;
+            div.innerHTML = `<label for="episode${id}">Episode ${id} Link:</label>
+                             <input type="text" id="episode${id}" placeholder="Enter link for Episode ${id}">
+                             <button class="paste-button" onclick="pasteClipboard(${id})">Tempel</button>
+                             <button class="remove-button" onclick="removeEpisode(${id})">-</button>`;
+            episodeContainer.appendChild(div);
+        }
+
+        // Function to remove an episode input
+        function removeEpisode(id) {
+            const episodeDiv = document.getElementById(`episodeDiv${id}`);
+            if (episodeDiv) {
+                episodeDiv.remove();
             }
         }
 
         // Function to generate JSON from the input fields
         function generateJson() {
             const episodes = [];
-            const numEpisodes = parseInt(document.getElementById('numEpisodes').value);
-            for (let i = 1; i <= numEpisodes; i++) {
-                const link = document.getElementById(`episode${i}`).value;
+            const episodeContainer = document.getElementById('episodeContainer');
+            const inputs = episodeContainer.getElementsByTagName('input');
+
+            for (let i = 0; i < inputs.length; i++) {
+                const link = inputs[i].value;
+                const id = inputs[i].id.replace('episode', '');
                 if (link) {
-                    episodes.push({ id: i, title: `Episode ${i}`, link: link });
+                    episodes.push({ id: parseInt(id), title: `Episode ${id}`, link: link });
                 }
             }
 
@@ -122,7 +158,7 @@
             try {
                 const parsedData = JSON.parse(jsonData);
                 document.getElementById('numEpisodes').value = parsedData.episodes.length; // Set the number of episodes
-                addEpisodes(); // Generate input fields based on loaded data
+                setEpisodes(); // Generate input fields based on loaded data
                 
                 parsedData.episodes.forEach(episode => {
                     const inputField = document.getElementById(`episode${episode.id}`);
