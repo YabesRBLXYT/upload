@@ -147,6 +147,7 @@
                 episodeLabel.innerHTML = `Episode ${newId} Link:`;
                 episodeLabel.setAttribute('for', `episode${newId}`);
                 episodeInput.id = `episode${newId}`;
+                episodeInput.placeholder = `Enter link for Episode ${newId}`; // Update placeholder
             }
 
             currentEpisodeId = episodeDivs.length;
