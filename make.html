@@ -209,21 +209,16 @@
             document.getElementById('copyButton').style.display = 'block'; // Show copy button
         }
 
-        // Function to load JSON into the textboxes
+        // Function to load JSON into the textboxes without changing the number of episodes
         function loadJson() {
             const jsonInput = document.getElementById('jsonInputArea').value;
             try {
                 const jsonData = JSON.parse(jsonInput);
                 const episodes = jsonData.episodes;
 
-                if (episodes && episodes.length > 0) {
-                    document.getElementById('numEpisodes').value = episodes.length;
-                    setEpisodes(); // Set episode inputs
-
-                    // Fill in the episode links
-                    episodes.forEach((episode, index) => {
-                        document.getElementById(`episode${index + 1}`).value = episode.link;
-                    });
+                // Fill in the episode links without altering the number of textboxes
+                for (let i = 0; i < episodes.length && i < currentEpisodeId; i++) {
+                    document.getElementById(`episode${i + 1}`).value = episodes[i].link;
                 }
             } catch (error) {
                 alert('Invalid JSON format!');
@@ -261,6 +256,9 @@
                 alert('Failed to read clipboard content');
             }
         }
+
+        // Initialize with default number of episodes
+        window.onload = setEpisodes;
     </script>
 </body>
 </html>
