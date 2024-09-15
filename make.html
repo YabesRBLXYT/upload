@@ -140,11 +140,12 @@
             const episodeDivs = episodeContainer.getElementsByClassName('episode-input');
 
             for (let i = 0; i < episodeDivs.length; i++) {
-                const episodeLabel = episodeDivs[i].querySelector('label');
-                const episodeInput = episodeDivs[i].querySelector('input');
+                const episodeDiv = episodeDivs[i];
+                const episodeLabel = episodeDiv.querySelector('label');
+                const episodeInput = episodeDiv.querySelector('input');
                 const newId = i + 1;
 
-                episodeDivs[i].id = `episodeDiv${newId}`; // Update container div ID
+                episodeDiv.id = `episodeDiv${newId}`; // Update container div ID
                 episodeLabel.innerHTML = `Episode ${newId} Link:`;
                 episodeLabel.setAttribute('for', `episode${newId}`);
                 episodeInput.id = `episode${newId}`;
