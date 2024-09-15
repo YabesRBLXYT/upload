@@ -73,7 +73,6 @@
     <label for="numEpisodes">Number of Episodes:</label>
     <input type="number" id="numEpisodes" value="48" min="1" max="100">
     <button class="add-episode-button" onclick="setEpisodes()">Set Episodes</button>
-    <button class="add-episode-button" onclick="addSingleEpisode()">+</button>
 
     <div id="episodeContainer"></div>
 
@@ -122,6 +121,13 @@
                              <button class="paste-button" onclick="pasteClipboard(${id})">Tempel</button>
                              <button class="remove-button" onclick="removeEpisode(${id})">-</button>`;
             episodeContainer.appendChild(div);
+
+            // Only add the "+" button for the last episode
+            if (id === currentEpisodeId) {
+                const addButtonDiv = document.createElement('div');
+                addButtonDiv.innerHTML = `<button class="add-episode-button" onclick="addSingleEpisode()">+</button>`;
+                episodeContainer.appendChild(addButtonDiv);
+            }
         }
 
         // Function to remove an episode input
@@ -129,6 +135,24 @@
             const episodeDiv = document.getElementById(`episodeDiv${id}`);
             if (episodeDiv) {
                 episodeDiv.remove();
+                adjustAddButtonPosition();
+            }
+        }
+
+        // Function to move "+" button to the last episode after removing an episode
+        function adjustAddButtonPosition() {
+            const episodeContainer = document.getElementById('episodeContainer');
+            const addButton = episodeContainer.querySelector('.add-episode-button');
+
+            if (addButton) {
+                addButton.remove(); // Remove the existing button
+
+                const lastEpisodeDiv = episodeContainer.querySelector('.episode-input:last-child');
+                if (lastEpisodeDiv) {
+                    const newAddButtonDiv = document.createElement('div');
+                    newAddButtonDiv.innerHTML = `<button class="add-episode-button" onclick="addSingleEpisode()">+</button>`;
+                    episodeContainer.appendChild(newAddButtonDiv); // Add "+" button after the last episode
+                }
             }
         }
 
