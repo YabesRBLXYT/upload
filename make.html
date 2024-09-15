@@ -64,6 +64,39 @@
         #copyButton:hover {
             background-color: #45a049;
         }
+        .switch {
+            display: inline-block;
+            margin-bottom: 20px;
+        }
+        .switch input {
+            display: none;
+        }
+        .slider {
+            position: relative;
+            display: inline-block;
+            width: 50px;
+            height: 25px;
+            background-color: #ccc;
+            border-radius: 25px;
+            transition: background-color 0.2s;
+        }
+        .slider:before {
+            content: "";
+            position: absolute;
+            width: 20px;
+            height: 20px;
+            background-color: white;
+            border-radius: 50%;
+            top: 2.5px;
+            left: 3px;
+            transition: transform 0.2s;
+        }
+        input:checked + .slider {
+            background-color: #4CAF50;
+        }
+        input:checked + .slider:before {
+            transform: translateX(25px);
+        }
     </style>
 </head>
 <body>
@@ -73,6 +106,12 @@
     <label for="numEpisodes">Number of Episodes:</label>
     <input type="number" id="numEpisodes" value="12" min="1" max="100">
     <button class="add-episode-button" onclick="setEpisodes()">Set Episodes</button>
+
+    <div class="switch">
+        <label>Show Remove Buttons (On/Off)</label>
+        <input type="checkbox" id="removeSwitch" checked onchange="toggleRemoveButtons()">
+        <span class="slider"></span>
+    </div>
 
     <div id="episodeContainer"></div>
 
@@ -90,6 +129,7 @@
 
     <script>
         let currentEpisodeId = 12; // To keep track of episode ids for manual additions
+        let showRemoveButtons = true; // Track whether to show remove buttons
 
         // Function to set episodes based on the input number
         function setEpisodes() {
@@ -121,7 +161,7 @@
             div.innerHTML = `<label id="label${id}" for="episode${id}">Episode ${id} Link:</label>
                              <input type="text" id="episode${id}" placeholder="Enter link for Episode ${id}">
                              <button class="paste-button" id="pasteButton${id}" onclick="pasteClipboard(${id})">Tempel</button>
-                             <button class="remove-button" onclick="removeEpisode(${id})">-</button>`;
+                             <button class="remove-button" onclick="removeEpisode(${id})" ${showRemoveButtons ? '' : 'style="display:none;"'}>-</button>`;
             episodeContainer.appendChild(div);
         }
 
@@ -144,6 +184,7 @@
                 const episodeLabel = episodeDiv.querySelector('label');
                 const episodeInput = episodeDiv.querySelector('input');
                 const pasteButton = episodeDiv.querySelector('.paste-button');
+                const removeButton = episodeDiv.querySelector('.remove-button');
                 const newId = i + 1;
 
                 episodeDiv.id = `episodeDiv${newId}`; // Update container div ID
@@ -153,6 +194,13 @@
                 episodeInput.placeholder = `Enter link for Episode ${newId}`; // Update placeholder
                 pasteButton.id = `pasteButton${newId}`; // Update button ID
                 pasteButton.setAttribute('onclick', `pasteClipboard(${newId})`); // Correct paste function
+
+                // Update remove button visibility based on switch
+                if (showRemoveButtons) {
+                    removeButton.style.display = 'inline-block';
+                } else {
+                    removeButton.style.display = 'none';
+                }
             }
 
             currentEpisodeId = episodeDivs.length;
@@ -194,42 +242,56 @@
             document.getElementById('copyButton').style.display = 'inline-block'; // Show copy button
         }
 
-        // Function to load an existing JSON and populate the input fields
+        // Function to load JSON into the textboxes
         function loadJson() {
-            const jsonData = document.getElementById('jsonInputArea').value;
+            const jsonInput = document.getElementById('jsonInputArea').value;
             try {
-                const parsedData = JSON.parse(jsonData);
-                document.getElementById('numEpisodes').value = parsedData.episodes.length; // Set the number of episodes
-                setEpisodes(); // Generate input fields based on loaded data
-                
-                parsedData.episodes.forEach(episode => {
-                    const inputField = document.getElementById(`episode${episode.id}`);
-                    if (inputField) {
-                        inputField.value = episode.link;
-                    }
-                });
+                const jsonData = JSON.parse(jsonInput);
+                const episodes = jsonData.episodes;
+
+                if (episodes && episodes.length > 0) {
+                    document.getElementById('numEpisodes').value = episodes.length;
+                    setEpisodes(); // Set episode inputs
+
+                    // Fill in the episode links
+                    episodes.forEach((episode, index) => {
+                        document.getElementById(`episode${index + 1}`).value = episode.link;
+                    });
+                }
             } catch (error) {
-                alert('Invalid JSON data');
+                alert('Invalid JSON format!');
             }
         }
 
-        // Function to copy the generated JSON to clipboard
-        function copyJson() {
-            const jsonOutput = document.getElementById('jsonOutput').textContent;
-            navigator.clipboard.writeText(jsonOutput).then(() => {
-                alert('JSON copied to clipboard!');
-            }).catch(err => {
-                console.error('Failed to copy text: ', err);
-            });
+        // Function to toggle remove button visibility
+        function toggleRemoveButtons() {
+            showRemoveButtons = document.getElementById('removeSwitch').checked;
+            reorderEpisodes(); // Re-order to apply the new setting
         }
 
-        // Function to paste clipboard content into the specified episode input
-        function pasteClipboard(episodeId) {
-            navigator.clipboard.readText().then(text => {
-                document.getElementById(`episode${episodeId}`).value = text;
-            }).catch(err => {
-                alert('Failed to read clipboard contents: ', err);
-            });
+        // Function to copy the generated JSON to the clipboard
+        function copyJson() {
+            const jsonOutput = document.getElementById('jsonOutput');
+            const range = document.createRange();
+            range.selectNode(jsonOutput);
+            window.getSelection().removeAllRanges();
+            window.getSelection().addRange(range);
+            document.execCommand('copy');
+            window.getSelection().removeAllRanges();
+            alert('JSON copied to clipboard!');
+        }
+
+        // Function to paste clipboard content into an input
+        async function pasteClipboard(id) {
+            try {
+                const text = await navigator.clipboard.readText();
+                const inputField = document.getElementById(`episode${id}`);
+                if (inputField) {
+                    inputField.value = text;
+                }
+            } catch (err) {
+                alert('Failed to read clipboard content');
+            }
         }
     </script>
 </body>
