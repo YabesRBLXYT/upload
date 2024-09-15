@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>HTML List Navigator</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+        }
+        ul {
+            list-style-type: none;
+            padding: 0;
+        }
+        li {
+            margin: 10px 0;
+        }
+        a {
+            text-decoration: none;
+            color: #1a73e8;
+            font-size: 18px;
+        }
+        a:hover {
+            color: #0d47a1;
+        }
+    </style>
+</head>
+<body>
+    <h1>List of HTML Pages</h1>
+    <ul id="htmlList">
+        <!-- List items will be populated here by JavaScript -->
+    </ul>
+
+    <script>
+        // Mengambil elemen list HTML
+        const htmlList = document.getElementById('htmlList');
+
+        // Memuat data dari data.json
+        fetch('data.json')
+            .then(response => response.json())
+            .then(data => {
+                const htmlPages = data.pages; // Mendapatkan daftar halaman dari data.json
+                // Menambahkan setiap item ke dalam list
+                htmlPages.forEach(page => {
+                    const listItem = document.createElement('li');
+                    const link = document.createElement('a');
+                    link.href = page.link;
+                    link.textContent = page.name;
+                    listItem.appendChild(link);
+                    htmlList.appendChild(listItem);
+                });
+            })
+            .catch(error => console.error('Error loading data:', error));
+    </script>
+</body>
+</html>
