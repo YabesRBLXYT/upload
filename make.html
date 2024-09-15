@@ -77,7 +77,7 @@
     <label for="removeOption">Show Remove Buttons:</label>
     <select id="removeOption" onchange="toggleRemoveButtons()">
         <option value="on">On</option>
-        <option value="off">Off</option>
+        <option value="off" selected>Off</option>
     </select>
 
     <div id="episodeContainer"></div>
@@ -96,7 +96,7 @@
 
     <script>
         let currentEpisodeId = 12; // To keep track of episode ids for manual additions
-        let showRemoveButtons = true; // Track whether to show remove buttons
+        let showRemoveButtons = false; // Default to hide remove buttons
 
         // Function to set episodes based on the input number
         function setEpisodes() {
