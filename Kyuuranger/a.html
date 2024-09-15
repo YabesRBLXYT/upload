@@ -71,7 +71,7 @@
     <h1>Episode JSON Generator</h1>
 
     <label for="numEpisodes">Number of Episodes:</label>
-    <input type="number" id="numEpisodes" value="48" min="1" max="100">
+    <input type="number" id="numEpisodes" value="12" min="1" max="100">
     <button class="add-episode-button" onclick="setEpisodes()">Set Episodes</button>
 
     <div id="episodeContainer"></div>
@@ -89,7 +89,7 @@
     <button id="copyButton" style="display: none;" onclick="copyJson()">Copy JSON</button>
 
     <script>
-        let currentEpisodeId = 48; // To keep track of episode ids for manual additions
+        let currentEpisodeId = 12; // To keep track of episode ids for manual additions
 
         // Function to set episodes based on the input number
         function setEpisodes() {
@@ -118,20 +118,39 @@
             const div = document.createElement('div');
             div.className = 'episode-input';
             div.id = `episodeDiv${id}`;
-            div.innerHTML = `<label for="episode${id}">Episode ${id} Link:</label>
+            div.innerHTML = `<label id="label${id}" for="episode${id}">Episode ${id} Link:</label>
                              <input type="text" id="episode${id}" placeholder="Enter link for Episode ${id}">
                              <button class="paste-button" onclick="pasteClipboard(${id})">Tempel</button>
                              <button class="remove-button" onclick="removeEpisode(${id})">-</button>`;
             episodeContainer.appendChild(div);
         }
 
-        // Function to remove an episode input
+        // Function to remove an episode input and re-order episodes
         function removeEpisode(id) {
             const episodeDiv = document.getElementById(`episodeDiv${id}`);
             if (episodeDiv) {
                 episodeDiv.remove();
-                adjustAddButtonPosition();
+                reorderEpisodes(); // Re-order remaining episodes
             }
+        }
+
+        // Function to re-order episodes after removing one
+        function reorderEpisodes() {
+            const episodeContainer = document.getElementById('episodeContainer');
+            const episodeDivs = episodeContainer.getElementsByClassName('episode-input');
+
+            for (let i = 0; i < episodeDivs.length; i++) {
+                const episodeLabel = episodeDivs[i].querySelector('label');
+                const episodeInput = episodeDivs[i].querySelector('input');
+                const newId = i + 1;
+
+                episodeLabel.innerHTML = `Episode ${newId} Link:`;
+                episodeLabel.setAttribute('for', `episode${newId}`);
+                episodeInput.id = `episode${newId}`;
+            }
+
+            currentEpisodeId = episodeDivs.length;
+            adjustAddButtonPosition();
         }
 
         // Function to move "+" button to the last episode after removing or adding an episode
@@ -157,9 +176,9 @@
 
             for (let i = 0; i < inputs.length; i++) {
                 const link = inputs[i].value;
-                const id = inputs[i].id.replace('episode', '');
+                const id = i + 1; // Use the input index to ensure the episodes are numbered correctly
                 if (link) {
-                    episodes.push({ id: parseInt(id), title: `Episode ${id}`, link: link });
+                    episodes.push({ id: id, title: `Episode ${id}`, link: link });
                 }
             }
 
