@@ -89,61 +89,83 @@
     <button id="copyButton" style="display: none;" onclick="copyJson()">Copy JSON</button>
 
     <script>
-        let currentEpisodeId = 12;
+        let currentEpisodeId = 12; // Default number of episodes
 
+        // Function to set episodes based on the input number
         function setEpisodes() {
             const episodeContainer = document.getElementById('episodeContainer');
             const numEpisodes = parseInt(document.getElementById('numEpisodes').value);
-            episodeContainer.innerHTML = '';
+            episodeContainer.innerHTML = ''; // Clear previous inputs
 
             for (let i = 1; i <= numEpisodes; i++) {
                 addEpisodeInput(i);
             }
 
-            currentEpisodeId = numEpisodes;
-            adjustAddButtonPosition();
+            currentEpisodeId = numEpisodes; // Update current episode ID tracker
+            adjustAddButtonPosition(); // Ensure "+" button is placed correctly
         }
 
+        // Function to add a single episode input manually
         function addSingleEpisode() {
             currentEpisodeId++;
             addEpisodeInput(currentEpisodeId);
             adjustAddButtonPosition();
         }
 
+        // Function to create the episode input
         function addEpisodeInput(id) {
             const episodeContainer = document.getElementById('episodeContainer');
             const div = document.createElement('div');
             div.className = 'episode-input';
             div.id = `episodeDiv${id}`;
-            div.innerHTML = `<label id="label${id}" for="episode${id}">Episode ${id} Link:</label>
+            div.innerHTML = `<label for="episode${id}">Episode ${id} Link:</label>
                              <input type="text" id="episode${id}" placeholder="Enter link for Episode ${id}">
                              <button class="paste-button" onclick="pasteClipboard(${id})">Tempel</button>
-                             <button class="remove-button" onclick="removeLastEpisode()">-</button>`;
+                             <button class="remove-button" onclick="removeEpisode(${id})">-</button>`;
             episodeContainer.appendChild(div);
         }
 
-        function removeLastEpisode() {
+        // Function to remove an episode input
+        function removeEpisode(id) {
             const episodeContainer = document.getElementById('episodeContainer');
-            if (episodeContainer.children.length > 0) {
-                episodeContainer.lastElementChild.remove();
+            const lastEpisodeDiv = episodeContainer.lastElementChild;
+            if (lastEpisodeDiv && lastEpisodeDiv.id === `episodeDiv${currentEpisodeId}`) {
+                lastEpisodeDiv.remove();
                 currentEpisodeId--;
                 adjustAddButtonPosition();
+                reorderEpisodes(); // Reorder the remaining episodes
             }
         }
 
+        // Function to reorder episodes after one is removed
+        function reorderEpisodes() {
+            const episodeContainer = document.getElementById('episodeContainer');
+            const episodeDivs = episodeContainer.getElementsByClassName('episode-input');
+            for (let i = 0; i < episodeDivs.length; i++) {
+                const label = episodeDivs[i].getElementsByTagName('label')[0];
+                const input = episodeDivs[i].getElementsByTagName('input')[0];
+                const episodeNumber = i + 1;
+                label.textContent = `Episode ${episodeNumber} Link:`;
+                input.id = `episode${episodeNumber}`;
+            }
+        }
+
+        // Function to move "+" button to the last episode after removing or adding an episode
         function adjustAddButtonPosition() {
             const episodeContainer = document.getElementById('episodeContainer');
             const existingAddButton = episodeContainer.querySelector('.add-episode-button');
 
             if (existingAddButton) {
-                existingAddButton.remove();
+                existingAddButton.remove(); // Remove the existing "+" button
             }
 
+            // Add "+" button after the last episode
             const newAddButtonDiv = document.createElement('div');
             newAddButtonDiv.innerHTML = `<button class="add-episode-button" onclick="addSingleEpisode()">+</button>`;
             episodeContainer.appendChild(newAddButtonDiv);
         }
 
+        // Function to generate JSON from the input fields
         function generateJson() {
             const episodes = [];
             const episodeContainer = document.getElementById('episodeContainer');
@@ -151,23 +173,25 @@
 
             for (let i = 0; i < inputs.length; i++) {
                 const link = inputs[i].value;
-                const id = i + 1;
+                const id = inputs[i].id.replace('episode', '');
                 if (link) {
-                    episodes.push({ id: id, title: `Episode ${id}`, link: link });
+                    episodes.push({ id: parseInt(id), title: `Episode ${id}`, link: link });
                 }
             }
 
+            // Create formatted JSON with minimal spacing
             const json = JSON.stringify({ episodes: episodes }, null, 1).replace(/\n\s+/g, " ");
             document.getElementById('jsonOutput').textContent = json;
-            document.getElementById('copyButton').style.display = 'inline-block';
+            document.getElementById('copyButton').style.display = 'inline-block'; // Show copy button
         }
 
+        // Function to load an existing JSON and populate the input fields
         function loadJson() {
             const jsonData = document.getElementById('jsonInputArea').value;
             try {
                 const parsedData = JSON.parse(jsonData);
-                document.getElementById('numEpisodes').value = parsedData.episodes.length;
-                setEpisodes();
+                document.getElementById('numEpisodes').value = parsedData.episodes.length; // Set the number of episodes
+                setEpisodes(); // Generate input fields based on loaded data
                 
                 parsedData.episodes.forEach(episode => {
                     const inputField = document.getElementById(`episode${episode.id}`);
@@ -180,6 +204,7 @@
             }
         }
 
+        // Function to copy the generated JSON to clipboard
         function copyJson() {
             const jsonOutput = document.getElementById('jsonOutput').textContent;
             navigator.clipboard.writeText(jsonOutput).then(() => {
@@ -189,6 +214,7 @@
             });
         }
 
+        // Function to paste clipboard content into the specified episode input
         function pasteClipboard(episodeId) {
             navigator.clipboard.readText().then(text => {
                 document.getElementById(`episode${episodeId}`).value = text;
@@ -196,6 +222,11 @@
                 alert('Failed to read clipboard contents: ', err);
             });
         }
+
+        // Set default episodes on load
+        window.onload = function() {
+            setEpisodes();
+        };
     </script>
 </body>
 </html>
