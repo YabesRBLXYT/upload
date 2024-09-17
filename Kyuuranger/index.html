@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Kyuuranger - Episode Player</title>
+    <title>Episode Player</title>
     <style>
         body {
             font-family: Arial, sans-serif;
@@ -56,14 +56,14 @@
             padding: 10px;
             border-radius: 5px;
             font-size: 18px;
-            margin-bottom: 10px; /* Adds space between the episode ID and skip OP button */
+            margin-bottom: 10px;
         }
         #skipOP {
             background-color: #444;
             color: white;
             padding: 10px 15px;
             border-radius: 5px;
-            margin-bottom: 20px; /* Adds space between skip OP button and video */
+            margin-bottom: 20px;
             display: block;
             text-align: center;
             cursor: pointer;
@@ -91,6 +91,12 @@
             background-color: #888;
             cursor: not-allowed;
         }
+        #lastWatched {
+            margin-top: 20px;
+            text-align: center;
+            color: #333;
+            font-size: 16px;
+        }
     </style>
 </head>
 <body>
@@ -110,9 +116,14 @@
         <button id="nextEpisode">Next Episode</button>
     </div>
 
+    <!-- Display the last watched episode and time -->
+    <div id="lastWatched"></div>
+
     <script>
         let episodes = [];
         let currentEpisodeIndex = 0;
+        let videoPlayer = document.getElementById('videoPlayer');
+        const lastWatchedInfo = document.getElementById('lastWatched');
 
         // Fetch episode data
         fetch('episode.json')
@@ -121,7 +132,6 @@
                 episodes = data.episodes;
                 const episodeBar = document.getElementById('episodeBar');
                 const episodeID = document.getElementById('episodeID'); // Get the episodeID element
-                const videoPlayer = document.getElementById('videoPlayer');
                 const videoSource = document.getElementById('videoSource');
                 const prevEpisode = document.getElementById('prevEpisode');
                 const nextEpisode = document.getElementById('nextEpisode');
@@ -134,7 +144,6 @@
                     episodeLink.textContent = episode.title;
                     episodeLink.addEventListener('click', (e) => {
                         e.preventDefault();
-                        // Navigate to the new URL, which will refresh the page
                         window.location.href = `#${episode.id}`;
                     });
                     episodeBar.appendChild(episodeLink);
@@ -146,9 +155,10 @@
                     if (episode) {
                         videoSource.src = episode.link;
                         videoPlayer.load();
-                        episodeID.textContent = `Episode ${episode.id}`; // Display the episode ID above the video
-                        window.location.hash = `#${episode.id}`; // Update hash without refreshing
+                        episodeID.textContent = `Episode ${episode.id}`;
+                        window.location.hash = `#${episode.id}`;
                         updateControls();
+                        checkLastWatched();
                     }
                 }
 
@@ -200,8 +210,28 @@
 
                 // Skip OP Button functionality
                 skipOPButton.addEventListener('click', () => {
-                    videoPlayer.currentTime += 80; // Skip 85 seconds (duration of OP)
+                    videoPlayer.currentTime += 80; // Skip 80 seconds (duration of OP)
                 });
+
+                // Save progress when video time is updated
+                videoPlayer.addEventListener('timeupdate', () => {
+                    const currentTime = videoPlayer.currentTime;
+                    localStorage.setItem('lastWatched', JSON.stringify({
+                        episodeId: episodes[currentEpisodeIndex].id,
+                        episodeTitle: episodes[currentEpisodeIndex].title,
+                        time: currentTime
+                    }));
+                });
+
+                // Check and display last watched information
+                function checkLastWatched() {
+                    const lastWatched = JSON.parse(localStorage.getItem('lastWatched'));
+                    if (lastWatched) {
+                        lastWatchedInfo.textContent = `Terakhir kamu nonton sampai Episode ${lastWatched.episodeTitle}, Menit: ${Math.floor(lastWatched.time / 60)}:${Math.floor(lastWatched.time % 60)} Detik`;
+                    } else {
+                        lastWatchedInfo.textContent = '';
+                    }
+                }
             });
     </script>
 </body>
