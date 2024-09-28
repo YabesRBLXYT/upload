@@ -97,7 +97,7 @@
             color: #333;
             font-size: 16px;
         }
-        #resetEpisode {
+        #resetEpisode, #skipToCurrent {
             background-color: #ff4444;
             color: white;
             padding: 10px 20px;
@@ -107,7 +107,7 @@
             margin: 20px auto;
             width: 200px;
         }
-        #resetEpisode:hover {
+        #resetEpisode:hover, #skipToCurrent:hover {
             background-color: #ff6666;
         }
     </style>
@@ -131,8 +131,11 @@
 
     <div id="lastWatched"></div>
 
+    <!-- Skip to current episode button -->
+    <div id="skipToCurrent">Skip to Current Episode</div>
+
     <!-- Reset button to clear current episode tracking -->
-    <div id="resetEpisode">Reset Current Episode</div>
+    <div id="resetEpisode">Reset Last Watched Info</div>
 
     <script>
         let episodes = [];
@@ -141,6 +144,7 @@
         let videoPlayer = document.getElementById('videoPlayer');
         const lastWatchedInfo = document.getElementById('lastWatched');
         const resetButton = document.getElementById('resetEpisode');
+        const skipToCurrentButton = document.getElementById('skipToCurrent');
 
         // Fetch episode data
         fetch('episode.json')
@@ -193,7 +197,6 @@
                 function init() {
                     const lastWatched = JSON.parse(localStorage.getItem('lastWatched'));
                     if (lastWatched) {
-                        // Always use the highest episode watched
                         highestEpisodeWatched = lastWatched.highestEpisode;
                         currentEpisodeIndex = highestEpisodeWatched;
                         videoPlayer.currentTime = lastWatched.time;
@@ -260,12 +263,15 @@
                     }
                 }
 
-                // Reset button to clear last watched data
+                // Reset button to clear only last watched info
                 resetButton.addEventListener('click', () => {
                     localStorage.removeItem('lastWatched');
                     lastWatchedInfo.textContent = 'Tracking episode terakhir telah direset!';
-                    highestEpisodeWatched = 0;
-                    currentEpisodeIndex = 0;
+                });
+
+                // Skip to current episode button
+                skipToCurrentButton.addEventListener('click', () => {
+                    currentEpisodeIndex = highestEpisodeWatched;
                     loadEpisode();
                 });
             });
