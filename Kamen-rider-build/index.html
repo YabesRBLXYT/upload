@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Episode Player</title>
+    <title>Kyuuranger - Episode Player</title>
     <style>
         body {
             font-family: Arial, sans-serif;
@@ -97,14 +97,27 @@
             color: #333;
             font-size: 16px;
         }
+        #resetEpisode {
+            background-color: #ff4444;
+            color: white;
+            padding: 10px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            text-align: center;
+            margin: 20px auto;
+            width: 200px;
+        }
+        #resetEpisode:hover {
+            background-color: #ff6666;
+        }
     </style>
 </head>
 <body>
     <div id="episodeBar"></div>
 
     <div id="videoContainer">
-        <div id="episodeID">Episode ID</div> <!-- Episode ID displayed above the video -->
-        <div id="skipOP">Skip OP</div> <!-- Skip OP Button placed directly below Episode ID -->
+        <div id="episodeID">Episode ID</div>
+        <div id="skipOP">Skip OP</div>
         <video id="videoPlayer" controls>
             <source id="videoSource" src="" type="video/mp4">
             Your browser does not support the video tag.
@@ -116,14 +129,18 @@
         <button id="nextEpisode">Next Episode</button>
     </div>
 
-    <!-- Display the last watched episode and time -->
     <div id="lastWatched"></div>
+
+    <!-- Reset button to clear current episode tracking -->
+    <div id="resetEpisode">Reset Current Episode</div>
 
     <script>
         let episodes = [];
         let currentEpisodeIndex = 0;
+        let highestEpisodeWatched = 0;
         let videoPlayer = document.getElementById('videoPlayer');
         const lastWatchedInfo = document.getElementById('lastWatched');
+        const resetButton = document.getElementById('resetEpisode');
 
         // Fetch episode data
         fetch('episode.json')
@@ -131,11 +148,11 @@
             .then(data => {
                 episodes = data.episodes;
                 const episodeBar = document.getElementById('episodeBar');
-                const episodeID = document.getElementById('episodeID'); // Get the episodeID element
+                const episodeID = document.getElementById('episodeID');
                 const videoSource = document.getElementById('videoSource');
                 const prevEpisode = document.getElementById('prevEpisode');
                 const nextEpisode = document.getElementById('nextEpisode');
-                const skipOPButton = document.getElementById('skipOP'); // Skip OP button
+                const skipOPButton = document.getElementById('skipOP');
 
                 // Populate episode bar
                 episodes.forEach((episode, index) => {
@@ -174,10 +191,12 @@
 
                 // Load initial episode
                 function init() {
-                    const hash = window.location.hash.substring(1);
-                    const index = episodes.findIndex(ep => ep.id == hash);
-                    if (index !== -1) {
-                        currentEpisodeIndex = index;
+                    const lastWatched = JSON.parse(localStorage.getItem('lastWatched'));
+                    if (lastWatched) {
+                        // Always use the highest episode watched
+                        highestEpisodeWatched = lastWatched.highestEpisode;
+                        currentEpisodeIndex = highestEpisodeWatched;
+                        videoPlayer.currentTime = lastWatched.time;
                     } else {
                         currentEpisodeIndex = 0;
                     }
@@ -210,16 +229,24 @@
 
                 // Skip OP Button functionality
                 skipOPButton.addEventListener('click', () => {
-                    videoPlayer.currentTime += 72; // Skip 80 seconds (duration of OP)
+                    videoPlayer.currentTime += 80;
                 });
 
                 // Save progress when video time is updated
                 videoPlayer.addEventListener('timeupdate', () => {
                     const currentTime = videoPlayer.currentTime;
+                    const currentEpisodeId = episodes[currentEpisodeIndex].id;
+
+                    // Update highest watched episode if needed
+                    if (currentEpisodeIndex > highestEpisodeWatched) {
+                        highestEpisodeWatched = currentEpisodeIndex;
+                    }
+
                     localStorage.setItem('lastWatched', JSON.stringify({
-                        episodeId: episodes[currentEpisodeIndex].id,
+                        episodeId: currentEpisodeId,
                         episodeTitle: episodes[currentEpisodeIndex].title,
-                        time: currentTime
+                        time: currentTime,
+                        highestEpisode: highestEpisodeWatched
                     }));
                 });
 
@@ -232,6 +259,15 @@
                         lastWatchedInfo.textContent = '';
                     }
                 }
+
+                // Reset button to clear last watched data
+                resetButton.addEventListener('click', () => {
+                    localStorage.removeItem('lastWatched');
+                    lastWatchedInfo.textContent = 'Tracking episode terakhir telah direset!';
+                    highestEpisodeWatched = 0;
+                    currentEpisodeIndex = 0;
+                    loadEpisode();
+                });
             });
     </script>
 </body>
