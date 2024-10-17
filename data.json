@@ -1,6 +1,7 @@
 {
     "pages": [
-        { "name": "Kyuuranger", "link": "Kyuuranger/index.html" },
-        { "name": "Kamen rider build", "link": "Kamen-rider-build" }
+        { "name": "Kyuuranger", "link": "Kyuuranger/" },
+        { "name": "Kamen rider build", "link": "Kamen-rider-build" },
+        { "name": "Grendizer U", "grendizer-u" }
     ]
 }
