@@ -130,11 +130,7 @@
     </div>
 
     <div id="lastWatched"></div>
-
-    <!-- Skip to current episode button -->
     <div id="skipToCurrent">Skip to Current Episode</div>
-
-    <!-- Reset button to clear current episode tracking -->
     <div id="resetEpisode">Reset Last Watched Info</div>
 
     <script>
@@ -171,8 +167,122 @@
                 });
 
                 // Load video based on hash or current index
-                function loadEpisode() {
-                    const episode = episodes[currentEpisodeIndex];
+                function loadEpisode(index) {
+                    const episode = episodes[index];
+                    if (episode) {
+                        videoSource.src = episode.link;
+                        videoPlayer.load();
+                        episodeID.textContent = `Episode ${episode.id}`;
+                        currentEpisodeIndex = index;
+                        window.location.hash = `#${episode.id}`;
+                        updateControls();
+                        checkLastWatched();
+                    }
+                }
+
+                // Event listener for hash change
+                window.addEventListener('hashchange', () => {
+                    const hash = window.location.hash.substring(1);
+                    const index = episodes.findIndex(ep => ep.id == hash);
+                    if (index !== -1) {
+                        loadEpisode(index);
+                    }
+                });
+
+                // Initialize with hash or last watched
+                function init() {
+                    const hash = window.location.hash.substring(1);
+                    const lastWatched = JSON.parse(localStorage.getItem('lastWatched'));
+
+                    if (hash) {
+                        const index = episodes.findIndex(ep => ep.id == hash);
+                        if (index !== -1) {
+                            loadEpisode(index);
+                            return;
+                        }
+                    }
+
+                    // Fallback to last watched episode
+                    if (lastWatched) {
+                        highestEpisodeWatched = lastWatched.highestEpisode;
+                        loadEpisode(highestEpisodeWatched);
+                        videoPlayer.currentTime = lastWatched.time;
+                    } else {
+                        loadEpisode(0); // Default to episode 1 if no data is available
+                    }
+                }
+                init();
+
+                // Update controls based on the current episode
+                function updateControls() {
+                    prevEpisode.classList.toggle('disabled', currentEpisodeIndex === 0);
+                    nextEpisode.classList.toggle('disabled', currentEpisodeIndex === episodes.length - 1);
+                }
+
+                // Event listeners for controls
+                prevEpisode.addEventListener('click', (e) => {
+                    if (currentEpisodeIndex > 0) {
+                        e.preventDefault();
+                        currentEpisodeIndex--;
+                        loadEpisode(currentEpisodeIndex);
+                    }
+                });
+
+                nextEpisode.addEventListener('click', (e) => {
+                    if (currentEpisodeIndex < episodes.length - 1) {
+                        e.preventDefault();
+                        currentEpisodeIndex++;
+                        loadEpisode(currentEpisodeIndex);
+                    }
+                });
+
+                // Skip OP Button functionality
+                skipOPButton.addEventListener('click', () => {
+                    videoPlayer.currentTime += 80;
+                });
+
+                // Save progress when video time is updated
+                videoPlayer.addEventListener('timeupdate', () => {
+                    const currentTime = videoPlayer.currentTime;
+                    const currentEpisodeId = episodes[currentEpisodeIndex].id;
+
+                    // Update highest watched episode if needed
+                    if (currentEpisodeIndex > highestEpisodeWatched) {
+                        highestEpisodeWatched = currentEpisodeIndex;
+                    }
+
+                    localStorage.setItem('lastWatched', JSON.stringify({
+                        episodeId: currentEpisodeId,
+                        episodeTitle: episodes[currentEpisodeIndex].title,
+                        time: currentTime,
+                        highestEpisode: highestEpisodeWatched
+                    }));
+                });
+
+                // Check and display last watched information
+                function checkLastWatched() {
+                    const lastWatched = JSON.parse(localStorage.getItem('lastWatched'));
+                    if (lastWatched) {
+                        lastWatchedInfo.textContent = `Terakhir kamu nonton sampai Episode ${lastWatched.episodeTitle}, Menit: ${Math.floor(lastWatched.time / 60)}:${Math.floor(lastWatched.time % 60)} Detik`;
+                    } else {
+                        lastWatchedInfo.textContent = '';
+                    }
+                }
+
+                // Reset button to clear only last watched info
+                resetButton.addEventListener('click', () => {
+                    localStorage.removeItem('lastWatched');
+                    lastWatchedInfo.textContent = 'Tracking episode terakhir telah direset!';
+                });
+
+                // Skip to current episode button
+                skipToCurrentButton.addEventListener('click', () => {
+                    loadEpisode(highestEpisodeWatched);
+                });
+            });
+    </script>
+</body>
+</html>
                     if (episode) {
                         videoSource.src = episode.link;
                         videoPlayer.load();
