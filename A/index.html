@@ -1,0 +1,390 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Episode Player</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: #f0f0f0;
+        }
+        #episodeBar {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            background-color: #333;
+            padding: 10px;
+            display: flex;
+            overflow-x: auto;
+            white-space: nowrap;
+            z-index: 1000;
+        }
+        #episodeBar a {
+            color: white;
+            text-decoration: none;
+            margin: 0 10px;
+            padding: 10px;
+            border-radius: 5px;
+            background-color: #444;
+            display: inline-block;
+        }
+        #episodeBar a:hover {
+            background-color: #666;
+        }
+        #videoContainer {
+            display: block;
+            margin: 150px auto;
+            width: 80%;
+            max-width: 720px;
+            position: relative;
+        }
+        video {
+            width: 100%;
+            border: 2px solid #333;
+            border-radius: 10px;
+            position: relative;
+        }
+        #episodeID {
+            position: relative;
+            text-align: center;
+            background-color: rgba(0, 0, 0, 0.7);
+            color: white;
+            padding: 10px;
+            border-radius: 5px;
+            font-size: 18px;
+            margin-bottom: 10px;
+        }
+        #skipOP {
+            background-color: #444;
+            color: white;
+            padding: 10px 15px;
+            border-radius: 5px;
+            margin-bottom: 20px;
+            display: block;
+            text-align: center;
+            cursor: pointer;
+        }
+        #skipOP:hover {
+            background-color: #666;
+        }
+        #controls {
+            text-align: center;
+            margin: 20px 0;
+        }
+        #controls button {
+            background-color: #333;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            margin: 0 5px;
+        }
+        #controls button:hover {
+            background-color: #666;
+        }
+        #controls .disabled {
+            background-color: #888;
+            cursor: not-allowed;
+        }
+        #lastWatched {
+            margin-top: 20px;
+            text-align: center;
+            color: #333;
+            font-size: 16px;
+        }
+        #resetEpisode, #skipToCurrent {
+            background-color: #ff4444;
+            color: white;
+            padding: 10px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            text-align: center;
+            margin: 20px auto;
+            width: 200px;
+        }
+        #resetEpisode:hover, #skipToCurrent:hover {
+            background-color: #ff6666;
+        }
+    </style>
+</head>
+<body>
+    <div id="episodeBar"></div>
+
+    <div id="videoContainer">
+        <div id="episodeID">Episode ID</div>
+        <div id="skipOP">Skip OP</div>
+        <video id="videoPlayer" controls>
+            <source id="videoSource" src="" type="video/mp4">
+            Your browser does not support the video tag.
+        </video>
+    </div>
+
+    <div id="controls">
+        <button id="prevEpisode" class="disabled">Previous Episode</button>
+        <button id="nextEpisode">Next Episode</button>
+    </div>
+
+    <div id="lastWatched"></div>
+    <div id="skipToCurrent">Skip to Current Episode</div>
+    <div id="resetEpisode">Reset Last Watched Info</div>
+
+    <script>
+        let episodes = [];
+        let currentEpisodeIndex = 0;
+        let highestEpisodeWatched = 0;
+        let videoPlayer = document.getElementById('videoPlayer');
+        const lastWatchedInfo = document.getElementById('lastWatched');
+        const resetButton = document.getElementById('resetEpisode');
+        const skipToCurrentButton = document.getElementById('skipToCurrent');
+
+        // Fetch episode data
+        fetch('episode.json')
+            .then(response => response.json())
+            .then(data => {
+                episodes = data.episodes;
+                const episodeBar = document.getElementById('episodeBar');
+                const episodeID = document.getElementById('episodeID');
+                const videoSource = document.getElementById('videoSource');
+                const prevEpisode = document.getElementById('prevEpisode');
+                const nextEpisode = document.getElementById('nextEpisode');
+                const skipOPButton = document.getElementById('skipOP');
+
+                // Populate episode bar
+                episodes.forEach((episode, index) => {
+                    const episodeLink = document.createElement('a');
+                    episodeLink.href = `#${episode.id}`;
+                    episodeLink.textContent = episode.title;
+                    episodeLink.addEventListener('click', (e) => {
+                        e.preventDefault();
+                        window.location.href = `#${episode.id}`;
+                    });
+                    episodeBar.appendChild(episodeLink);
+                });
+
+                // Load video based on hash or current index
+                function loadEpisode(index) {
+                    const episode = episodes[index];
+                    if (episode) {
+                        videoSource.src = episode.link;
+                        videoPlayer.load();
+                        episodeID.textContent = `Episode ${episode.id}`;
+                        currentEpisodeIndex = index;
+                        window.location.hash = `#${episode.id}`;
+                        updateControls();
+                        checkLastWatched();
+                    }
+                }
+
+                // Event listener for hash change
+                window.addEventListener('hashchange', () => {
+                    const hash = window.location.hash.substring(1);
+                    const index = episodes.findIndex(ep => ep.id == hash);
+                    if (index !== -1) {
+                        loadEpisode(index);
+                    }
+                });
+
+                // Initialize with hash or last watched
+                function init() {
+                    const hash = window.location.hash.substring(1);
+                    const lastWatched = JSON.parse(localStorage.getItem('lastWatched'));
+
+                    if (hash) {
+                        const index = episodes.findIndex(ep => ep.id == hash);
+                        if (index !== -1) {
+                            loadEpisode(index);
+                            return;
+                        }
+                    }
+
+                    // Fallback to last watched episode
+                    if (lastWatched) {
+                        highestEpisodeWatched = lastWatched.highestEpisode;
+                        loadEpisode(highestEpisodeWatched);
+                        videoPlayer.currentTime = lastWatched.time;
+                    } else {
+                        loadEpisode(0); // Default to episode 1 if no data is available
+                    }
+                }
+                init();
+
+                // Update controls based on the current episode
+                function updateControls() {
+                    prevEpisode.classList.toggle('disabled', currentEpisodeIndex === 0);
+                    nextEpisode.classList.toggle('disabled', currentEpisodeIndex === episodes.length - 1);
+                }
+
+                // Event listeners for controls
+                prevEpisode.addEventListener('click', (e) => {
+                    if (currentEpisodeIndex > 0) {
+                        e.preventDefault();
+                        currentEpisodeIndex--;
+                        loadEpisode(currentEpisodeIndex);
+                    }
+                });
+
+                nextEpisode.addEventListener('click', (e) => {
+                    if (currentEpisodeIndex < episodes.length - 1) {
+                        e.preventDefault();
+                        currentEpisodeIndex++;
+                        loadEpisode(currentEpisodeIndex);
+                    }
+                });
+
+                // Skip OP Button functionality
+                skipOPButton.addEventListener('click', () => {
+                    videoPlayer.currentTime += 80;
+                });
+
+                // Save progress when video time is updated
+                videoPlayer.addEventListener('timeupdate', () => {
+                    const currentTime = videoPlayer.currentTime;
+                    const currentEpisodeId = episodes[currentEpisodeIndex].id;
+
+                    // Update highest watched episode if needed
+                    if (currentEpisodeIndex > highestEpisodeWatched) {
+                        highestEpisodeWatched = currentEpisodeIndex;
+                    }
+
+                    localStorage.setItem('lastWatched', JSON.stringify({
+                        episodeId: currentEpisodeId,
+                        episodeTitle: episodes[currentEpisodeIndex].title,
+                        time: currentTime,
+                        highestEpisode: highestEpisodeWatched
+                    }));
+                });
+
+                // Check and display last watched information
+                function checkLastWatched() {
+                    const lastWatched = JSON.parse(localStorage.getItem('lastWatched'));
+                    if (lastWatched) {
+                        lastWatchedInfo.textContent = `Terakhir kamu nonton sampai Episode ${lastWatched.episodeTitle}, Menit: ${Math.floor(lastWatched.time / 60)}:${Math.floor(lastWatched.time % 60)} Detik`;
+                    } else {
+                        lastWatchedInfo.textContent = '';
+                    }
+                }
+
+                // Reset button to clear only last watched info
+                resetButton.addEventListener('click', () => {
+                    localStorage.removeItem('lastWatched');
+                    lastWatchedInfo.textContent = 'Tracking episode terakhir telah direset!';
+                });
+
+                // Skip to current episode button
+                skipToCurrentButton.addEventListener('click', () => {
+                    loadEpisode(highestEpisodeWatched);
+                });
+            });
+    </script>
+</body>
+</html>
+                    if (episode) {
+                        videoSource.src = episode.link;
+                        videoPlayer.load();
+                        episodeID.textContent = `Episode ${episode.id}`;
+                        window.location.hash = `#${episode.id}`;
+                        updateControls();
+                        checkLastWatched();
+                    }
+                }
+
+                // Event listener for hash change
+                window.addEventListener('hashchange', () => {
+                    const hash = window.location.hash.substring(1);
+                    const index = episodes.findIndex(ep => ep.id == hash);
+                    if (index !== -1) {
+                        currentEpisodeIndex = index;
+                        loadEpisode();
+                    }
+                });
+
+                // Load initial episode
+                function init() {
+                    const lastWatched = JSON.parse(localStorage.getItem('lastWatched'));
+                    if (lastWatched) {
+                        highestEpisodeWatched = lastWatched.highestEpisode;
+                        currentEpisodeIndex = highestEpisodeWatched;
+                        videoPlayer.currentTime = lastWatched.time;
+                    } else {
+                        currentEpisodeIndex = 0;
+                    }
+                    loadEpisode();
+                }
+                init();
+
+                // Update controls based on the current episode
+                function updateControls() {
+                    prevEpisode.classList.toggle('disabled', currentEpisodeIndex === 0);
+                    nextEpisode.classList.toggle('disabled', currentEpisodeIndex === episodes.length - 1);
+                }
+
+                // Event listeners for controls
+                prevEpisode.addEventListener('click', (e) => {
+                    if (currentEpisodeIndex > 0) {
+                        e.preventDefault();
+                        currentEpisodeIndex--;
+                        loadEpisode();
+                    }
+                });
+
+                nextEpisode.addEventListener('click', (e) => {
+                    if (currentEpisodeIndex < episodes.length - 1) {
+                        e.preventDefault();
+                        currentEpisodeIndex++;
+                        loadEpisode();
+                    }
+                });
+
+                // Skip OP Button functionality
+                skipOPButton.addEventListener('click', () => {
+                    videoPlayer.currentTime += 80;
+                });
+
+                // Save progress when video time is updated
+                videoPlayer.addEventListener('timeupdate', () => {
+                    const currentTime = videoPlayer.currentTime;
+                    const currentEpisodeId = episodes[currentEpisodeIndex].id;
+
+                    // Update highest watched episode if needed
+                    if (currentEpisodeIndex > highestEpisodeWatched) {
+                        highestEpisodeWatched = currentEpisodeIndex;
+                    }
+
+                    localStorage.setItem('lastWatched', JSON.stringify({
+                        episodeId: currentEpisodeId,
+                        episodeTitle: episodes[currentEpisodeIndex].title,
+                        time: currentTime,
+                        highestEpisode: highestEpisodeWatched
+                    }));
+                });
+
+                // Check and display last watched information
+                function checkLastWatched() {
+                    const lastWatched = JSON.parse(localStorage.getItem('lastWatched'));
+                    if (lastWatched) {
+                        lastWatchedInfo.textContent = `Terakhir kamu nonton sampai Episode ${lastWatched.episodeTitle}, Menit: ${Math.floor(lastWatched.time / 60)}:${Math.floor(lastWatched.time % 60)} Detik`;
+                    } else {
+                        lastWatchedInfo.textContent = '';
+                    }
+                }
+
+                // Reset button to clear only last watched info
+                resetButton.addEventListener('click', () => {
+                    localStorage.removeItem('lastWatched');
+                    lastWatchedInfo.textContent = 'Tracking episode terakhir telah direset!';
+                });
+
+                // Skip to current episode button
+                skipToCurrentButton.addEventListener('click', () => {
+                    currentEpisodeIndex = highestEpisodeWatched;
+                    loadEpisode();
+                });
+            });
+    </script>
+</body>
+</html>
