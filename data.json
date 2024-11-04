@@ -2,6 +2,7 @@
     "pages": [
         { "name": "Kyuuranger", "link": "Kyuuranger/index.html" },
         { "name": "Kamen rider build", "link": "Kamen-rider-build" },
-        { "name": "Lv2 Kara Cheat", "link": "lv2-kara-cheat" }
+        { "name": "Lv2 Kara Cheat", "link": "lv2-kara-cheat" },
+        { "name": "Isekai Shikkaku", "link": "IseShku" }
     ]
 }
