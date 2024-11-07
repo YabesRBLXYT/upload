@@ -1,0 +1,10 @@
+{
+    "Pixeldrain": {
+        "from": "https://pixeldrain.com/u/",
+        "to": "https://pixeldrain.com/api/file/.f?download"
+    },
+    "Hxfile": {
+        "from": "https://hxfile.co/",
+        "to": "https://hxfile.co/.f/download"
+    }
+}
