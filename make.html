@@ -98,7 +98,50 @@
         let currentEpisodeId = 12; // To keep track of episode ids for manual additions
         let showRemoveButtons = false; // Default to hide remove buttons
 
-        // Function to set episodes based on the input number
+        async function fetchUrlTransformations() {
+            try {
+                const response = await fetch('links.json');
+                return await response.json();
+            } catch (error) {
+                console.error('Error loading links.json:', error);
+                alert('Failed to load link transformations.');
+                return null;
+            }
+        }
+
+        async function generateJson() {
+            const urlTransformations = await fetchUrlTransformations();
+            if (!urlTransformations) return; // Stop if failed to load JSON
+
+            const episodes = [];
+            const episodeContainer = document.getElementById('episodeContainer');
+            const inputs = episodeContainer.getElementsByTagName('input');
+
+            for (let i = 0; i < inputs.length; i++) {
+                let link = inputs[i].value;
+                const id = i + 1; // Use the input index to ensure the episodes are numbered correctly
+
+                // Process URL with matching rule
+                for (const service in urlTransformations) {
+                    const { from, to } = urlTransformations[service];
+                    if (link.startsWith(from)) {
+                        const fileId = link.replace(from, ''); // Extract file ID
+                        link = to.replace('.f', fileId); // Replace .f with file ID
+                        break; // Stop searching if transformation is successful
+                    }
+                }
+
+                if (link) {
+                    episodes.push({ id: id, title: `Episode ${id}`, link: link });
+                }
+            }
+
+            // Create formatted JSON with minimal spacing
+            const json = JSON.stringify({ episodes: episodes }, null, 1).replace(/\n\s+/g, " ");
+            document.getElementById('jsonOutput').textContent = json;
+            document.getElementById('copyButton').style.display = 'block'; // Show copy button
+        }
+
         function setEpisodes() {
             const episodeContainer = document.getElementById('episodeContainer');
             const numEpisodes = parseInt(document.getElementById('numEpisodes').value);
@@ -112,14 +155,12 @@
             adjustAddButtonPosition(); // Ensure "+" button is placed correctly
         }
 
-        // Function to add a single episode input manually
         function addSingleEpisode() {
             currentEpisodeId++;
             addEpisodeInput(currentEpisodeId);
             adjustAddButtonPosition();
         }
 
-        // Function to create the episode input
         function addEpisodeInput(id) {
             const episodeContainer = document.getElementById('episodeContainer');
             const div = document.createElement('div');
@@ -132,7 +173,6 @@
             episodeContainer.appendChild(div);
         }
 
-        // Function to remove an episode input and re-order episodes
         function removeEpisode(id) {
             const episodeDiv = document.getElementById(`episodeDiv${id}`);
             if (episodeDiv) {
@@ -141,7 +181,6 @@
             }
         }
 
-        // Function to re-order episodes after removing one
         function reorderEpisodes() {
             const episodeContainer = document.getElementById('episodeContainer');
             const episodeDivs = episodeContainer.getElementsByClassName('episode-input');
@@ -174,7 +213,6 @@
             adjustAddButtonPosition();
         }
 
-        // Function to move "+" button to the last episode after removing or adding an episode
         function adjustAddButtonPosition() {
             const episodeContainer = document.getElementById('episodeContainer');
             const existingAddButton = episodeContainer.querySelector('.add-episode-button');
@@ -189,27 +227,6 @@
             episodeContainer.appendChild(newAddButtonDiv);
         }
 
-        // Function to generate JSON from the input fields
-        function generateJson() {
-            const episodes = [];
-            const episodeContainer = document.getElementById('episodeContainer');
-            const inputs = episodeContainer.getElementsByTagName('input');
-
-            for (let i = 0; i < inputs.length; i++) {
-                const link = inputs[i].value;
-                const id = i + 1; // Use the input index to ensure the episodes are numbered correctly
-                if (link) {
-                    episodes.push({ id: id, title: `Episode ${id}`, link: link });
-                }
-            }
-
-            // Create formatted JSON with minimal spacing
-            const json = JSON.stringify({ episodes: episodes }, null, 1).replace(/\n\s+/g, " ");
-            document.getElementById('jsonOutput').textContent = json;
-            document.getElementById('copyButton').style.display = 'block'; // Show copy button
-        }
-
-        // Function to load JSON into the textboxes without changing the number of episodes
         function loadJson() {
             const jsonInput = document.getElementById('jsonInputArea').value;
             try {
@@ -225,36 +242,32 @@
             }
         }
 
-        // Function to toggle remove button visibility based on the dropdown option
         function toggleRemoveButtons() {
-            const selectedOption = document.getElementById('removeOption').value;
-            showRemoveButtons = (selectedOption === 'on');
-            reorderEpisodes(); // Re-order to apply the new setting
-        }
+            const selectedValue = document.getElementById('removeOption').value;
+            const removeButtons = document.querySelectorAll('.remove-button');
 
-        // Function to copy the generated JSON to the clipboard
-        function copyJson() {
-            const jsonOutput = document.getElementById('jsonOutput');
-            const range = document.createRange();
-            range.selectNode(jsonOutput);
-            window.getSelection().removeAllRanges();
-            window.getSelection().addRange(range);
-            document.execCommand('copy');
-            window.getSelection().removeAllRanges();
-            alert('JSON copied to clipboard!');
-        }
-
-        // Function to paste clipboard content into an input
-        async function pasteClipboard(id) {
-            try {
-                const text = await navigator.clipboard.readText();
-                const inputField = document.getElementById(`episode${id}`);
-                if (inputField) {
-                    inputField.value = text;
-                }
-            } catch (err) {
-                alert('Failed to read clipboard content');
+            showRemoveButtons = selectedValue === 'on';
+            for (const button of removeButtons) {
+                button.style.display = showRemoveButtons ? 'inline-block' : 'none';
             }
+        }
+
+        function pasteClipboard(episodeId) {
+            navigator.clipboard.readText().then(text => {
+                document.getElementById(`episode${episodeId}`).value = text;
+            }).catch(err => {
+                console.error('Failed to read clipboard: ', err);
+                alert('Failed to read clipboard content.');
+            });
+        }
+
+        function copyJson() {
+            const jsonOutput = document.getElementById('jsonOutput').textContent;
+            navigator.clipboard.writeText(jsonOutput).then(() => {
+                alert('JSON copied to clipboard!');
+            }).catch(err => {
+                console.error('Failed to copy JSON: ', err);
+            });
         }
 
         // Initialize with default number of episodes
